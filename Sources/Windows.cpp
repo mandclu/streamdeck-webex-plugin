@@ -1,5 +1,5 @@
-// Martijn Smit <martijn@lostdomain.org / @smitmartijn>
-#include "ZoomStreamDeckPlugin.h"
+// Martijn Smit <martijn@mandclu.org / @smitmartijn>
+#include "WebexStreamDeckPlugin.h"
 
 #include <StreamDeckSDK/ESDLogger.h>
 #include <windows.h>
@@ -12,7 +12,7 @@ IUIAutomationElement *GetTopLevelWindowByName(LPWSTR windowName);
 void rawListDescendants(IUIAutomationElement *pParent, std::string windowType);
 void altPlusKey(UINT key);
 
-std::string g_statusZoom = "stopped";
+std::string g_statusWebex = "stopped";
 std::string g_statusMute = "unknown";
 std::string g_statusVideo = "unknown";
 std::string g_statusShare = "unknown";
@@ -35,45 +35,45 @@ void init()
 std::string formatStatus()
 {
   std::stringstream ss;
-  ss << "zoomStatus:" << g_statusZoom << ",";
-  ss << "zoomMute:" << g_statusMute << ",";
-  ss << "zoomVideo:" << g_statusVideo << ",";
-  ss << "zoomRecord:" << g_statusRecord << ",";
-  ss << "zoomShare:" << g_statusShare;
+  ss << "webexStatus:" << g_statusWebex << ",";
+  ss << "webexMute:" << g_statusMute << ",";
+  ss << "webexVideo:" << g_statusVideo << ",";
+  ss << "webexRecord:" << g_statusRecord << ",";
+  ss << "webexShare:" << g_statusShare;
   return ss.str();
 }
 
-std::string osGetZoomStatus()
+std::string osGetWebexStatus()
 {
   init();
 
-  // Get the handle of the Zoom window.
-  HWND zoomWnd = ::FindWindow(NULL, "Zoom");
-  if (zoomWnd != NULL)
+  // Get the handle of the Webex window.
+  HWND webexWnd = ::FindWindow(NULL, "Webex");
+  if (webexWnd != NULL)
   {
-    g_statusZoom = "open";
-    IUIAutomationElement *zoom = GetTopLevelWindowByName(L"Zoom");
-    rawListDescendants(zoom, "Zoom");
-    g_windowName = "Zoom";
+    g_statusWebex = "open";
+    IUIAutomationElement *webex = GetTopLevelWindowByName(L"Webex");
+    rawListDescendants(webex, "Webex");
+    g_windowName = "Webex";
   }
 
-  // Get the handle of the Zoom Meetings window.
-  zoomWnd = ::FindWindow(NULL, "Zoom Meeting");
-  if (zoomWnd != NULL)
+  // Get the handle of the Webex Meetings window.
+  webexWnd = ::FindWindow(NULL, "Webex Meeting");
+  if (webexWnd != NULL)
   {
-    g_statusZoom = "call";
-    IUIAutomationElement *zoom = GetTopLevelWindowByName(L"Zoom Meeting");
-    rawListDescendants(zoom, "Meeting");
-    g_windowName = "Zoom Meeting";
+    g_statusWebex = "call";
+    IUIAutomationElement *webex = GetTopLevelWindowByName(L"Webex Meeting");
+    rawListDescendants(webex, "Meeting");
+    g_windowName = "Webex Meeting";
   }
 
   // Get the handle of the Meetings Controls window.
-  zoomWnd = ::FindWindow(NULL, "Meeting Controls");
-  if (zoomWnd != NULL)
+  webexWnd = ::FindWindow(NULL, "Meeting Controls");
+  if (webexWnd != NULL)
   {
-    g_statusZoom = "call";
-    IUIAutomationElement *zoom = GetTopLevelWindowByName(L"Meeting Controls");
-    rawListDescendants(zoom, "Controls");
+    g_statusWebex = "call";
+    IUIAutomationElement *webex = GetTopLevelWindowByName(L"Meeting Controls");
+    rawListDescendants(webex, "Controls");
     g_windowName = "Meeting Controls";
   }
 
@@ -182,7 +182,7 @@ void rawListDescendants(IUIAutomationElement *pParent, std::string windowType)
     {
       std::wstring strName(sName, SysStringLen(sName));
 
-      // we're looking for different buttons per window. This is the Main Zoom window
+      // we're looking for different buttons per window. This is the Main Webex window
       if (windowType == "Meeting")
       {
         if (strName.find(L"currently unmuted") != std::string::npos)
@@ -217,8 +217,8 @@ void rawListDescendants(IUIAutomationElement *pParent, std::string windowType)
           g_statusRecord = "started";
         }
       }
-      // we're looking for different buttons per window. This is the minimized Zoom window
-      else if (windowType == "Zoom")
+      // we're looking for different buttons per window. This is the minimized Webex window
+      else if (windowType == "Webex")
       {
         if (strName.find(L"Mute My Audio") != std::string::npos)
         {
@@ -243,7 +243,7 @@ void rawListDescendants(IUIAutomationElement *pParent, std::string windowType)
         g_statusShare = "stopped";
       }
 
-      // we're looking for different buttons per window. This is the Zoom window when you're sharing
+      // we're looking for different buttons per window. This is the Webex window when you're sharing
       else if (windowType == "Controls")
       {
         if (strName.find(L"currently unmuted") != std::string::npos)
@@ -298,68 +298,68 @@ cleanup:
   return;
 }
 
-void osFocusZoomWindow()
+void osFocusWebexWindow()
 {
-  // Get the handle of the Zoom window.
-  HWND zoomWnd = ::FindWindow(NULL, g_windowName.c_str());
-  if (zoomWnd == NULL)
+  // Get the handle of the Webex window.
+  HWND webexWnd = ::FindWindow(NULL, g_windowName.c_str());
+  if (webexWnd == NULL)
   {
     return;
   }
-  SetForegroundWindow(zoomWnd);
+  SetForegroundWindow(webexWnd);
 }
 
-void osToggleZoomMute()
+void osToggleWebexMute()
 {
-  //ESDDebug("ZoomPlugin: Sending mute shortcut");
-  osFocusZoomWindow();
+  //ESDDebug("WebexPlugin: Sending mute shortcut");
+  osFocusWebexWindow();
   ::keybd_event(VK_MENU, 0, 0, 0);
   ::keybd_event(0x41, 0, 0, 0); // virtual key code for 'A'
   keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
   keybd_event(0x41, 0, KEYEVENTF_KEYUP, 0); // virtual key code for 'A'
 }
-void osToggleZoomShare()
+void osToggleWebexShare()
 {
-  //ESDDebug("ZoomPlugin: Sending share shortcut");
-  osFocusZoomWindow();
+  //ESDDebug("WebexPlugin: Sending share shortcut");
+  osFocusWebexWindow();
   ::keybd_event(VK_MENU, 0, 0, 0);
   ::keybd_event(0x53, 0, 0, 0); // virtual key code for 'S'
   keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
   keybd_event(0x53, 0, KEYEVENTF_KEYUP, 0); // virtual key code for 'S'
 }
-void osToggleZoomVideo()
+void osToggleWebexVideo()
 {
-  //ESDDebug("ZoomPlugin: Sending video shortcut");
-  osFocusZoomWindow();
+  //ESDDebug("WebexPlugin: Sending video shortcut");
+  osFocusWebexWindow();
   ::keybd_event(VK_MENU, 0, 0, 0);
   ::keybd_event(0x56, 0, 0, 0); // virtual key code for 'V'
   keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
   keybd_event(0x56, 0, KEYEVENTF_KEYUP, 0); // virtual key code for 'V'
 }
-void osLeaveZoomMeeting()
+void osLeaveWebexMeeting()
 {
-  //ESDDebug("ZoomPlugin: Ending meeting");
-  osFocusZoomWindow();
+  //ESDDebug("WebexPlugin: Ending meeting");
+  osFocusWebexWindow();
   ::keybd_event(VK_MENU, 0, 0, 0);
   ::keybd_event(0x51, 0, 0, 0); // virtual key code for 'Q'
   keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
   keybd_event(0x51, 0, KEYEVENTF_KEYUP, 0); // virtual key code for 'Q'
 }
 
-void osToggleZoomRecordCloud()
+void osToggleWebexRecordCloud()
 {
-  //ESDDebug("ZoomPlugin: Toggling Cloud Recording");
-  osFocusZoomWindow();
+  //ESDDebug("WebexPlugin: Toggling Cloud Recording");
+  osFocusWebexWindow();
   ::keybd_event(VK_MENU, 0, 0, 0);
   ::keybd_event(0x43, 0, 0, 0); // virtual key code for 'C'
   keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
   keybd_event(0x43, 0, KEYEVENTF_KEYUP, 0); // virtual key code for 'C'
 }
 
-void osToggleZoomRecordLocal()
+void osToggleWebexRecordLocal()
 {
-  //ESDDebug("ZoomPlugin: Toggling Local Recording");
-  osFocusZoomWindow();
+  //ESDDebug("WebexPlugin: Toggling Local Recording");
+  osFocusWebexWindow();
 
   ::keybd_event(VK_MENU, 0, 0, 0);
   ::keybd_event(0x52, 0, 0, 0); // virtual key code for 'R'
@@ -368,7 +368,7 @@ void osToggleZoomRecordLocal()
 }
 void osMuteAll()
 {
-  osFocusZoomWindow();
+  osFocusWebexWindow();
 
   ::keybd_event(VK_MENU, 0, 0, 0);
   ::keybd_event(0x4D, 0, 0, 0); // virtual key code for 'M'
@@ -396,7 +396,7 @@ void osMuteAll()
 
 void osUnmuteAll()
 {
-  osFocusZoomWindow();
+  osFocusWebexWindow();
 
   ::keybd_event(VK_MENU, 0, 0, 0);
   ::keybd_event(0x4D, 0, 0, 0); // virtual key code for 'M'
@@ -404,7 +404,7 @@ void osUnmuteAll()
   keybd_event(0x4D, 0, KEYEVENTF_KEYUP, 0); // virtual key code for 'M'
 }
 
-void osZoomCustomShortcut(std::string shortcut)
+void osWebexCustomShortcut(std::string shortcut)
 {
   // not supported yet
 }

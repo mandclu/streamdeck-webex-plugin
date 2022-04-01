@@ -1,4 +1,4 @@
-// Martijn Smit <martijn@lostdomain.org / @smitmartijn>
+// Martijn Smit <martijn@mandclu.org / @smitmartijn>
 #include <StreamDeckSDK/ESDBasePlugin.h>
 
 #include <mutex>
@@ -9,23 +9,23 @@ using json = nlohmann::json;
 class CallBackTimer;
 
 // OS specific commands
-std::string osGetZoomStatus();
-void osToggleZoomMute();
-void osToggleZoomShare();
-void osToggleZoomVideo();
-void osLeaveZoomMeeting();
-void osFocusZoomWindow();
-void osToggleZoomRecordCloud();
-void osToggleZoomRecordLocal();
+std::string osGetWebexStatus();
+void osToggleWebexMute();
+void osToggleWebexShare();
+void osToggleWebexVideo();
+void osLeaveWebexMeeting();
+void osFocusWebexWindow();
+void osToggleWebexRecordCloud();
+void osToggleWebexRecordLocal();
 void osMuteAll();
 void osUnmuteAll();
-void osZoomCustomShortcut(std::string shortcut);
+void osWebexCustomShortcut(std::string shortcut);
 
-class ZoomStreamDeckPlugin : public ESDBasePlugin
+class WebexStreamDeckPlugin : public ESDBasePlugin
 {
 public:
-  ZoomStreamDeckPlugin();
-  virtual ~ZoomStreamDeckPlugin();
+  WebexStreamDeckPlugin();
+  virtual ~WebexStreamDeckPlugin();
 
   void KeyDownForAction(
       const std::string &inAction,
@@ -66,7 +66,7 @@ public:
       const std::string &inDeviceID) override;
 
 private:
-  void UpdateZoomStatus();
+  void UpdateWebexStatus();
 
   std::recursive_mutex mVisibleContextsMutex;
   std::set<std::string> mVisibleContexts;

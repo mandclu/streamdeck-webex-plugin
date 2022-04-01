@@ -1,30 +1,30 @@
-// Martijn Smit <martijn@lostdomain.org / @smitmartijn>
-#include "ZoomStreamDeckPlugin.h"
+// Martin Anderson-Clutz <mandclu@gmail.com / @mandclu>
+#include "WebexStreamDeckPlugin.h"
 #include <StreamDeckSDK/ESDLogger.h>
 
-extern std::string m_zoomMenuMeeting;
-extern std::string m_zoomMenuMuteAudio;
-extern std::string m_zoomMenuUnmuteAudio;
+extern std::string m_webexMenuMeeting;
+extern std::string m_webexMenuMuteAudio;
+extern std::string m_webexMenuUnmuteAudio;
 
-extern std::string m_zoomMenuStartVideo;
-extern std::string m_zoomMenuStopVideo;
+extern std::string m_webexMenuStartVideo;
+extern std::string m_webexMenuStopVideo;
 
-extern std::string m_zoomMenuStartShare;
-extern std::string m_zoomMenuStopShare;
+extern std::string m_webexMenuStartShare;
+extern std::string m_webexMenuStopShare;
 
-extern std::string m_zoomMenuStartRecordToCloud;
-extern std::string m_zoomMenuStopRecordToCloud;
+extern std::string m_webexMenuStartRecordToCloud;
+extern std::string m_webexMenuStopRecordToCloud;
 
-extern std::string m_zoomMenuStartRecord;
+extern std::string m_webexMenuStartRecord;
 
-extern std::string m_zoomMenuStartRecordLocal;
-extern std::string m_zoomMenuStopRecordLocal;
+extern std::string m_webexMenuStartRecordLocal;
+extern std::string m_webexMenuStopRecordLocal;
 
-extern std::string m_zoomMenuWindow;
-extern std::string m_zoomMenuClose;
+extern std::string m_webexMenuWindow;
+extern std::string m_webexMenuClose;
 
-extern std::string m_zoomMenuMuteAll;
-extern std::string m_zoomMenuUnmuteAll;
+extern std::string m_webexMenuMuteAll;
+extern std::string m_webexMenuUnmuteAll;
 
 char *execAndReturn(const char *command)
 {
@@ -63,21 +63,21 @@ char *execAndReturn(const char *command)
   return result;
 }
 
-std::string osGetZoomStatus()
+std::string osGetWebexStatus()
 {
   /*
   Original AS:
-  set zoomStatus to "closed"
+  set webexStatus to "closed"
 set muteStatus to "disabled"
 set videoStatus to "disabled"
 set shareStatus to "disabled"
 set recordStatus to "disabled"
 tell application "System Events"
-	if exists (window 1 of process "zoom.us") then
-		set zoomStatus to "open"
-		tell application process "zoom.us"
+	if exists (window 1 of process "Webex") then
+		set webexStatus to "open"
+		tell application process "Webex"
 			if exists (menu bar item "Meeting" of menu bar 1) then
-				set zoomStatus to "call"
+				set webexStatus to "call"
 				if exists (menu item "Mute audio" of menu 1 of menu bar item "Meeting" of menu bar 1) then
 					set muteStatus to "unmuted"
 				else
@@ -104,10 +104,10 @@ tell application "System Events"
 		end tell
 	end if
 end tell
-do shell script "echo zoomMute:" & (muteStatus as text) & ",zoomVideo:" & (videoStatus as text) & ",zoomStatus:" & (zoomStatus as text) & ",zoomShare:" & (shareStatus as text) & ",zoomRecord:" & (recordStatus as text)
+do shell script "echo webexMute:" & (muteStatus as text) & ",webexVideo:" & (videoStatus as text) & ",webexStatus:" & (webexStatus as text) & ",webexShare:" & (shareStatus as text) & ",webexRecord:" & (recordStatus as text)
   */
   // ESDDebug("APPLESCRIPT_GET_STATUS: %s", APPLESCRIPT_GET_STATUS);
-  const std::string appleScript = "set zoomStatus to \"closed\"\n"
+  const std::string appleScript = "set webexStatus to \"closed\"\n"
                                   "set muteStatus to \"disabled\"\n"
                                   "set videoStatus to \"disabled\"\n"
                                   "set shareStatus to \"disabled\"\n"
@@ -115,40 +115,40 @@ do shell script "echo zoomMute:" & (muteStatus as text) & ",zoomVideo:" & (video
                                   "set speakerViewStatus to \"disabled\"\n"
                                   "set minimalView to \"disabled\"\n"
                                   "tell application \"System Events\"\n"
-                                  "	if (get name of every application process) contains \"zoom.us\" then\n"
-                                  "		set zoomStatus to \"open\"\n"
-                                  "		tell application process \"zoom.us\"\n"
+                                  "	if (get name of every application process) contains \"Webex\" then\n"
+                                  "		set webexStatus to \"open\"\n"
+                                  "		tell application process \"Webex\"\n"
                                   "			if exists (menu bar item \"" +
-                                  m_zoomMenuMeeting + "\" of menu bar 1) then\n"
-                                                      "				set zoomStatus to \"call\"\n"
+                                  m_webexMenuMeeting + "\" of menu bar 1) then\n"
+                                                      "				set webexStatus to \"call\"\n"
                                                       "				if exists (menu item \"" +
-                                  m_zoomMenuMuteAudio + "\" of menu 1 of menu bar item \"" +
-                                  m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                                  m_webexMenuMuteAudio + "\" of menu 1 of menu bar item \"" +
+                                  m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                       "					set muteStatus to \"unmuted\"\n"
                                                       "				else\n"
                                                       "					set muteStatus to \"muted\"\n"
                                                       "				end if\n"
                                                       "				if exists (menu item \"" +
-                                  m_zoomMenuStartVideo + "\" of menu 1 of menu bar item \"" +
-                                  m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                                  m_webexMenuStartVideo + "\" of menu 1 of menu bar item \"" +
+                                  m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                       "					set videoStatus to \"stopped\"\n"
                                                       "				else\n"
                                                       "					set videoStatus to \"started\"\n"
                                                       "				end if\n"
                                                       "				if exists (menu item \"" +
-                                  m_zoomMenuStartShare + "\" of menu 1 of menu bar item \"" +
-                                  m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                                  m_webexMenuStartShare + "\" of menu 1 of menu bar item \"" +
+                                  m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                       "					set shareStatus to \"stopped\"\n"
                                                       "				else\n"
                                                       "					set shareStatus to \"started\"\n"
                                                       "				end if\n"
                                                       "				if exists (menu item \"" +
-                                  m_zoomMenuStartRecordToCloud + "\" of menu 1 of menu bar item \"" +
-                                  m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                                  m_webexMenuStartRecordToCloud + "\" of menu 1 of menu bar item \"" +
+                                  m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                       "					set recordStatus to \"stopped\"\n"
                                                       "				else if exists (menu item \"" +
-                                  m_zoomMenuStartRecord + "\" of menu 1 of menu bar item \"" +
-                                  m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                                  m_webexMenuStartRecord + "\" of menu 1 of menu bar item \"" +
+                                  m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                       "					set recordStatus to \"stopped\"\n"
                                                       "				else\n"
                                                       "					set recordStatus to \"started\"\n"
@@ -157,28 +157,28 @@ do shell script "echo zoomMute:" & (muteStatus as text) & ",zoomVideo:" & (video
                                                       "		end tell\n"
                                                       "	end if\n"
                                                       "end tell\n"
-                                                      "do shell script \"echo zoomMute:\" & (muteStatus as text) & \",zoomVideo:\" & (videoStatus as text) & \",zoomStatus:\" & (zoomStatus as text) & \",zoomShare:\" & (shareStatus as text) & \",zoomRecord:\" & (recordStatus as text)";
+                                                      "do shell script \"echo webexMute:\" & (muteStatus as text) & \",webexVideo:\" & (videoStatus as text) & \",webexStatus:\" & (webexStatus as text) & \",webexShare:\" & (shareStatus as text) & \",webexRecord:\" & (recordStatus as text)";
 
   std::string cmd = "osascript -e '";
   cmd.append(appleScript);
   cmd.append("'");
-  char *zoomStatus = execAndReturn(cmd.c_str());
+  char *webexStatus = execAndReturn(cmd.c_str());
 
-  return std::string(zoomStatus);
+  return std::string(webexStatus);
 }
 
-void osToggleZoomMute()
+void osToggleWebexMute()
 {
   const std::string script = "osascript -e '"
-                             "tell application \"zoom.us\"\n"
-                             "  tell application \"System Events\" to tell application process \"zoom.us\"\n"
+                             "tell application \"Webex\"\n"
+                             "  tell application \"System Events\" to tell application process \"Webex\"\n"
                              "    if exists (menu item \"" +
-                             m_zoomMenuUnmuteAudio + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                             m_webexMenuUnmuteAudio + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                                                                               "      click (menu item \"" +
-                             m_zoomMenuUnmuteAudio + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuUnmuteAudio + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                               "    else\n"
                                                                                                               "      click (menu item \"" +
-                             m_zoomMenuMuteAudio + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuMuteAudio + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                             "    end if\n"
                                                                                                             "  end tell\n"
                                                                                                             "end tell'\n";
@@ -186,18 +186,18 @@ void osToggleZoomMute()
   system(script.c_str());
 }
 
-void osToggleZoomShare()
+void osToggleWebexShare()
 {
   const std::string script = "osascript -e '"
-                             "tell application \"zoom.us\"\n"
-                             "  tell application \"System Events\" to tell application process \"zoom.us\"\n"
+                             "tell application \"Webex\"\n"
+                             "  tell application \"System Events\" to tell application process \"Webex\"\n"
                              "    if exists (menu item \"" +
-                             m_zoomMenuStartShare + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                             m_webexMenuStartShare + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                                                                              "      click (menu item \"" +
-                             m_zoomMenuStartShare + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuStartShare + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                              "    else\n"
                                                                                                              "      click (menu item \"" +
-                             m_zoomMenuStopShare + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuStopShare + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                             "    end if\n"
                                                                                                             "  end tell\n"
                                                                                                             "end tell'\n";
@@ -205,18 +205,18 @@ void osToggleZoomShare()
   system(script.c_str());
 }
 
-void osToggleZoomVideo()
+void osToggleWebexVideo()
 {
   const std::string script = "osascript -e '"
-                             "tell application \"zoom.us\"\n"
-                             "  tell application \"System Events\" to tell application process \"zoom.us\"\n"
+                             "tell application \"Webex\"\n"
+                             "  tell application \"System Events\" to tell application process \"Webex\"\n"
                              "    if exists (menu item \"" +
-                             m_zoomMenuStartVideo + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                             m_webexMenuStartVideo + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                                                                              "      click (menu item \"" +
-                             m_zoomMenuStartVideo + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuStartVideo + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                              "    else\n"
                                                                                                              "      click (menu item \"" +
-                             m_zoomMenuStopVideo + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuStopVideo + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                             "    end if\n"
                                                                                                             "  end tell\n"
                                                                                                             "end tell'\n";
@@ -224,15 +224,15 @@ void osToggleZoomVideo()
   system(script.c_str());
 }
 
-void osLeaveZoomMeeting()
+void osLeaveWebexMeeting()
 {
   const std::string script = "osascript -e '"
-                             "tell application \"zoom.us\" to activate\n"
-                             "tell application \"System Events\" to tell application process \"zoom.us\"\n"
+                             "tell application \"Webex\" to activate\n"
+                             "tell application \"System Events\" to tell application process \"Webex\"\n"
                              "	if exists (menu bar item \"" +
-                             m_zoomMenuWindow + "\" of menu bar 1) then\n"
+                             m_webexMenuWindow + "\" of menu bar 1) then\n"
                                                 "		click (menu item \"" +
-                             m_zoomMenuClose + "\" of menu 1 of menu bar item \"" + m_zoomMenuWindow + "\" of menu bar 1)\n"
+                             m_webexMenuClose + "\" of menu 1 of menu bar item \"" + m_webexMenuWindow + "\" of menu bar 1)\n"
                                                                                                        "		delay 0.5\n"
                                                                                                        "		click button 1 of window 1\n"
                                                                                                        "	end if\n"
@@ -241,31 +241,31 @@ void osLeaveZoomMeeting()
   system(script.c_str());
 }
 
-void osFocusZoomWindow()
+void osFocusWebexWindow()
 {
-  const char *script = "osascript -e 'tell application \"zoom.us\"\nactivate\nend tell'";
+  const char *script = "osascript -e 'tell application \"Webex\"\nactivate\nend tell'";
   //ESDDebug(script);
   system(script);
 }
 
-void osToggleZoomRecordCloud()
+void osToggleWebexRecordCloud()
 {
   const std::string script = "osascript -e '"
-                             "tell application \"zoom.us\"\n"
-                             "  tell application \"System Events\" to tell application process \"zoom.us\"\n"
+                             "tell application \"Webex\"\n"
+                             "  tell application \"System Events\" to tell application process \"Webex\"\n"
                              "    if exists (menu item \"" +
-                             m_zoomMenuStartRecordToCloud + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                             m_webexMenuStartRecordToCloud + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                                                                                      "      click (menu item \"" +
-                             m_zoomMenuStartRecordToCloud + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuStartRecordToCloud + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                                      "    else if exists (menu item \"" +
-                             m_zoomMenuStartRecord + "\" of menu 1 of menu bar item \"" +
-                             m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                             m_webexMenuStartRecord + "\" of menu 1 of menu bar item \"" +
+                             m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                  "      click (menu item \"" +
-                             m_zoomMenuStartRecord + "\" of menu 1 of menu bar item \"" +
-                             m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuStartRecord + "\" of menu 1 of menu bar item \"" +
+                             m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                  "    else\n"
                                                  "      click (menu item \"" +
-                             m_zoomMenuStopRecordToCloud + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuStopRecordToCloud + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                                     "    end if\n"
                                                                                                                     "  end tell\n"
                                                                                                                     "end tell'\n";
@@ -273,22 +273,22 @@ void osToggleZoomRecordCloud()
   system(script.c_str());
 }
 
-void osToggleZoomRecordLocal()
+void osToggleWebexRecordLocal()
 {
   const std::string script = "osascript -e '"
-                             "tell application \"zoom.us\"\n"
-                             "  tell application \"System Events\" to tell application process \"zoom.us\"\n"
+                             "tell application \"Webex\"\n"
+                             "  tell application \"System Events\" to tell application process \"Webex\"\n"
                              "    if exists (menu item \"" +
-                             m_zoomMenuStartRecordLocal + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                             m_webexMenuStartRecordLocal + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                                                                                    "      click (menu item \"" +
-                             m_zoomMenuStartRecordLocal + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuStartRecordLocal + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                                    "    else if exists (menu item \"" +
-                             m_zoomMenuStartRecord + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                             m_webexMenuStartRecord + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                                                                               "      click (menu item \"" +
-                             m_zoomMenuStartRecordLocal + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuStartRecordLocal + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                                    "    else\n"
                                                                                                                    "      click (menu item \"" +
-                             m_zoomMenuStopRecordLocal + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuStopRecordLocal + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                                   "    end if\n"
                                                                                                                   "  end tell\n"
                                                                                                                   "end tell'\n";
@@ -299,12 +299,12 @@ void osToggleZoomRecordLocal()
 void osMuteAll()
 {
   const std::string script = "osascript -e '"
-                             "tell application \"zoom.us\"\n"
-                             "  tell application \"System Events\" to tell application process \"zoom.us\"\n"
+                             "tell application \"Webex\"\n"
+                             "  tell application \"System Events\" to tell application process \"Webex\"\n"
                              "    if exists (menu item \"" +
-                             m_zoomMenuMuteAll + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                             m_webexMenuMuteAll + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                                                                           "      click (menu item \"" +
-                             m_zoomMenuMuteAll + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuMuteAll + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                           "      activate\n"
                                                                                                           "      set frontmost to true\n"
                                                                                                           "      delay 0.5\n"
@@ -318,12 +318,12 @@ void osMuteAll()
 void osUnmuteAll()
 {
   const std::string script = "osascript -e '"
-                             "tell application \"zoom.us\"\n"
-                             "  tell application \"System Events\" to tell application process \"zoom.us\"\n"
+                             "tell application \"Webex\"\n"
+                             "  tell application \"System Events\" to tell application process \"Webex\"\n"
                              "    if exists (menu item \"" +
-                             m_zoomMenuUnmuteAll + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1) then\n"
+                             m_webexMenuUnmuteAll + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1) then\n"
                                                                                                             "      click (menu item \"" +
-                             m_zoomMenuUnmuteAll + "\" of menu 1 of menu bar item \"" + m_zoomMenuMeeting + "\" of menu bar 1)\n"
+                             m_webexMenuUnmuteAll + "\" of menu 1 of menu bar item \"" + m_webexMenuMeeting + "\" of menu bar 1)\n"
                                                                                                             "    end if\n"
                                                                                                             "  end tell\n"
                                                                                                             "end tell'\n";
@@ -332,7 +332,7 @@ void osUnmuteAll()
 }
 
 
-void osZoomCustomShortcut(std::string shortcut)
+void osWebexCustomShortcut(std::string shortcut)
 {
   // build the apple script based on the incoming shortcut. Modifiers should always be first, so first check for mod keys, then move on to the key
   std::string s = shortcut;
@@ -341,9 +341,9 @@ void osZoomCustomShortcut(std::string shortcut)
   /*
     We want to build something like this:
 
-    tell application "zoom.us" to activate
-    tell application "zoom.us"
-      tell application "System Events" to tell application process "zoom.us"
+    tell application "Webex" to activate
+    tell application "Webex"
+      tell application "System Events" to tell application process "Webex"
         keystroke "v" using {shift down, command down}
       end tell
     end tell
@@ -393,9 +393,9 @@ void osZoomCustomShortcut(std::string shortcut)
   as_modifiers = as_modifiers.substr(0, as_modifiers.size()-2);
 
   const std::string script = "osascript -e '"
-                       "tell application \"zoom.us\" to activate\n"
-                       "tell application \"zoom.us\"\n"
-                       "  tell application \"System Events\" to tell application process \"zoom.us\"\n"
+                       "tell application \"Webex\" to activate\n"
+                       "tell application \"Webex\"\n"
+                       "  tell application \"System Events\" to tell application process \"Webex\"\n"
                        "    keystroke \""+as_key+"\" using {"+as_modifiers+"}\n"
                        "  end tell\n"
                        "end tell'";

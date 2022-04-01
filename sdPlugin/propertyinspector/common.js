@@ -123,7 +123,7 @@ function openWebsite() {
     const json = {
       'event': 'openUrl',
       'payload': {
-        'url': 'https://lostdomain.org/stream-deck-plugin-for-zoom/'
+        'url': 'https://mandclu.org/stream-deck-plugin-for-webex/'
       }
     };
     websocket.send(JSON.stringify(json));

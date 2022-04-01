@@ -1,5 +1,5 @@
-// Martijn Smit <martijn@lostdomain.org / @smitmartijn>
-#include "ZoomStreamDeckPlugin.h"
+// Martijn Smit <martijn@mandclu.org / @smitmartijn>
+#include "WebexStreamDeckPlugin.h"
 
 #include <StreamDeckSDK/EPLJSONUtils.h>
 #include <StreamDeckSDK/ESDConnectionManager.h>
@@ -10,38 +10,38 @@
 #include <mutex>
 #include <vector>
 
-#define MUTETOGGLE_ACTION_ID "com.lostdomain.zoom.mutetoggle"
-#define VIDEOTOGGLE_ACTION_ID "com.lostdomain.zoom.videotoggle"
-#define SHARETOGGLE_ACTION_ID "com.lostdomain.zoom.sharetoggle"
-#define FOCUS_ACTION_ID "com.lostdomain.zoom.focus"
-#define LEAVE_ACTION_ID "com.lostdomain.zoom.leave"
-#define RECORDCLOUDTOGGLE_ACTION_ID "com.lostdomain.zoom.recordcloudtoggle"
-#define RECORDLOCALTOGGLE_ACTION_ID "com.lostdomain.zoom.recordlocaltoggle"
-#define MUTEALL_ACTION_ID "com.lostdomain.zoom.muteall"
-#define UNMUTEALL_ACTION_ID "com.lostdomain.zoom.unmuteall"
-#define CUSTOMSHORTCUT_ACTION_ID "com.lostdomain.zoom.customshortcut"
+#define MUTETOGGLE_ACTION_ID "com.mandclu.webex.mutetoggle"
+#define VIDEOTOGGLE_ACTION_ID "com.mandclu.webex.videotoggle"
+#define SHARETOGGLE_ACTION_ID "com.mandclu.webex.sharetoggle"
+#define FOCUS_ACTION_ID "com.mandclu.webex.focus"
+#define LEAVE_ACTION_ID "com.mandclu.webex.leave"
+#define RECORDCLOUDTOGGLE_ACTION_ID "com.mandclu.webex.recordcloudtoggle"
+#define RECORDLOCALTOGGLE_ACTION_ID "com.mandclu.webex.recordlocaltoggle"
+#define MUTEALL_ACTION_ID "com.mandclu.webex.muteall"
+#define UNMUTEALL_ACTION_ID "com.mandclu.webex.unmuteall"
+#define CUSTOMSHORTCUT_ACTION_ID "com.mandclu.webex.customshortcut"
 
-std::string m_zoomMenuMeeting = "Meeting";
-std::string m_zoomMenuMuteAudio = "Mute audio";
-std::string m_zoomMenuUnmuteAudio = "Unmute audio";
+std::string m_webexMenuMeeting = "Participant";
+std::string m_webexMenuMuteAudio = "Mute Me";
+std::string m_webexMenuUnmuteAudio = "Unmute Me";
 
-std::string m_zoomMenuStartVideo = "Start Video";
-std::string m_zoomMenuStopVideo = "Stop Video";
+std::string m_webexMenuStartVideo = "Start Video";
+std::string m_webexMenuStopVideo = "Stop Video";
 
-std::string m_zoomMenuStartShare = "Start Share";
-std::string m_zoomMenuStopShare = "Stop Share";
+std::string m_webexMenuStartShare = "Start Share";
+std::string m_webexMenuStopShare = "Stop Share";
 
-std::string m_zoomMenuStartRecordToCloud = "Record to the Cloud";
-std::string m_zoomMenuStopRecordToCloud = "Stop Recording";
-std::string m_zoomMenuStartRecord = "Record";
-std::string m_zoomMenuStartRecordLocal = "Record on this Computer";
-std::string m_zoomMenuStopRecordLocal = "Stop Recording";
+std::string m_webexMenuStartRecordToCloud = "Record to the Cloud";
+std::string m_webexMenuStopRecordToCloud = "Stop Recording";
+std::string m_webexMenuStartRecord = "Record";
+std::string m_webexMenuStartRecordLocal = "Record on this Computer";
+std::string m_webexMenuStopRecordLocal = "Stop Recording";
 
-std::string m_zoomMenuWindow = "Window";
-std::string m_zoomMenuClose = "Close";
+std::string m_webexMenuWindow = "Window";
+std::string m_webexMenuClose = "Close";
 
-std::string m_zoomMenuMuteAll = "Mute All";
-std::string m_zoomMenuUnmuteAll = "Ask All To Unmute";
+std::string m_webexMenuMuteAll = "Mute All";
+std::string m_webexMenuUnmuteAll = "Unmute All";
 
 class CallBackTimer
 {
@@ -87,40 +87,40 @@ private:
   std::thread _thd;
 };
 
-json getZoomStatus()
+json getWebexStatus()
 {
-  // get Zoom Mute status
-  std::string status = osGetZoomStatus();
-  //ESDDebug("OS script output status - %s", zoomStatus);
+  // get Webex Mute status
+  std::string status = osGetWebexStatus();
+  //ESDDebug("OS script output status - %s", webexStatus);
 
   std::string statusMute;
   std::string statusVideo;
   std::string statusShare;
-  std::string statusZoom;
+  std::string statusWebex;
   std::string statusRecord;
   std::string statusMuteAll = "enabled";
   std::string statusUnmuteAll = "enabled";
 
-  if (status.find("zoomStatus:open") != std::string::npos)
+  if (status.find("webexStatus:open") != std::string::npos)
   {
-    //ESDDebug("Zoom Open!");
-    statusZoom = "open";
+    //ESDDebug("Webex Open!");
+    statusWebex = "open";
   }
-  else if (status.find("zoomStatus:call") != std::string::npos)
+  else if (status.find("webexStatus:call") != std::string::npos)
   {
-    //ESDDebug("Zoom Call!");
-    statusZoom = "call";
+    //ESDDebug("Webex Call!");
+    statusWebex = "call";
   }
   else
   {
-    //ESDDebug("Zoom Closed!");
-    statusZoom = "closed";
+    //ESDDebug("Webex Closed!");
+    statusWebex = "closed";
   }
 
   // set mute, video, and sharing to disabled when there's no call
-  if (statusZoom != "call")
+  if (statusWebex != "call")
   {
-    //ESDDebug("Zoom closed!");
+    //ESDDebug("Webex closed!");
     statusMute = "disabled";
     statusVideo = "disabled";
     statusShare = "disabled";
@@ -131,54 +131,54 @@ json getZoomStatus()
   else
   {
     // if there is a call, determine the mute, video, and share status
-    if (status.find("zoomMute:muted") != std::string::npos)
+    if (status.find("webexMute:muted") != std::string::npos)
     {
-      //ESDDebug("Zoom Muted!");
+      //ESDDebug("Webex Muted!");
       statusMute = "muted";
     }
-    else if (status.find("zoomMute:unmuted") != std::string::npos)
+    else if (status.find("webexMute:unmuted") != std::string::npos)
     {
-      //ESDDebug("Zoom Unmuted!");
+      //ESDDebug("Webex Unmuted!");
       statusMute = "unmuted";
     }
 
-    if (status.find("zoomVideo:started") != std::string::npos)
+    if (status.find("webexVideo:started") != std::string::npos)
     {
-      //ESDDebug("Zoom Video Started!");
+      //ESDDebug("Webex Video Started!");
       statusVideo = "started";
     }
-    else if (status.find("zoomVideo:stopped") != std::string::npos)
+    else if (status.find("webexVideo:stopped") != std::string::npos)
     {
-      //ESDDebug("Zoom Video Stopped!");
+      //ESDDebug("Webex Video Stopped!");
       statusVideo = "stopped";
     }
 
-    if (status.find("zoomShare:started") != std::string::npos)
+    if (status.find("webexShare:started") != std::string::npos)
     {
-      //ESDDebug("Zoom Screen Sharing Started!");
+      //ESDDebug("Webex Screen Sharing Started!");
       statusShare = "started";
     }
-    else if (status.find("zoomShare:stopped") != std::string::npos)
+    else if (status.find("webexShare:stopped") != std::string::npos)
     {
-      //ESDDebug("Zoom Screen Sharing Stopped!");
+      //ESDDebug("Webex Screen Sharing Stopped!");
       statusShare = "stopped";
     }
 
-    if (status.find("zoomRecord:started") != std::string::npos)
+    if (status.find("webexRecord:started") != std::string::npos)
     {
-      //ESDDebug("Zoom Record Started!");
+      //ESDDebug("Webex Record Started!");
       statusRecord = "started";
     }
-    else if (status.find("zoomRecord:stopped") != std::string::npos)
+    else if (status.find("webexRecord:stopped") != std::string::npos)
     {
-      //ESDDebug("Zoom Record Stopped!");
+      //ESDDebug("Webex Record Stopped!");
       statusRecord = "stopped";
     }
   }
 
-  //ESDDebug("Zoom status: %s", status.c_str());
+  //ESDDebug("Webex status: %s", status.c_str());
 
-  return json({{"statusZoom", statusZoom},
+  return json({{"statusWebex", statusWebex},
                {"statusMute", statusMute},
                {"statusVideo", statusVideo},
                {"statusRecord", statusRecord},
@@ -187,31 +187,31 @@ json getZoomStatus()
                {"statusUnmuteAll", statusUnmuteAll}});
 }
 
-ZoomStreamDeckPlugin::ZoomStreamDeckPlugin()
+WebexStreamDeckPlugin::WebexStreamDeckPlugin()
 {
   ESDDebug("stored handle");
 
   // start a timer that updates the current status every 3 seconds
   mTimer = new CallBackTimer();
-  mTimer->start(1500, [this]() { this->UpdateZoomStatus(); });
+  mTimer->start(1500, [this]() { this->UpdateWebexStatus(); });
 }
 
-ZoomStreamDeckPlugin::~ZoomStreamDeckPlugin()
+WebexStreamDeckPlugin::~WebexStreamDeckPlugin()
 {
   ESDDebug("plugin destructor");
 }
 
-void ZoomStreamDeckPlugin::UpdateZoomStatus()
+void WebexStreamDeckPlugin::UpdateWebexStatus()
 {
   // This is running in a different thread
   if (mConnectionManager != nullptr)
   {
     std::scoped_lock lock(mVisibleContextsMutex);
 
-    //ESDDebug("UpdateZoomStatus");
-    // get zoom status for mute, video and whether it's open
-    json newStatus = getZoomStatus();
-    //ESDDebug("CURRENT: Zoom status %s", newStatus.dump().c_str());
+    //ESDDebug("UpdateWebexStatus");
+    // get webex status for mute, video and whether it's open
+    json newStatus = getWebexStatus();
+    //ESDDebug("CURRENT: Webex status %s", newStatus.dump().c_str());
     // Status images: 0 = active, 1 = cross, 2 = disabled
     auto newMuteState = 2;
     auto newVideoState = 2;
@@ -222,8 +222,8 @@ void ZoomStreamDeckPlugin::UpdateZoomStatus()
     auto newMuteAllState = 1;
     auto newUnmuteAllState = 1;
 
-    // set mute, video, sharing, and focus to disabled when Zoom is closed
-    if (EPLJSONUtils::GetStringByName(newStatus, "statusZoom") == "closed")
+    // set mute, video, sharing, and focus to disabled when Webex is closed
+    if (EPLJSONUtils::GetStringByName(newStatus, "statusWebex") == "closed")
     {
       newMuteState = 2;
       newVideoState = 2;
@@ -234,7 +234,7 @@ void ZoomStreamDeckPlugin::UpdateZoomStatus()
       newMuteAllState = 1;
       newUnmuteAllState = 1;
     }
-    else if (EPLJSONUtils::GetStringByName(newStatus, "statusZoom") == "open")
+    else if (EPLJSONUtils::GetStringByName(newStatus, "statusWebex") == "open")
     {
       // set mute, video, and sharing to disabled and focus to enabled when there's no call
       newFocusState = 0;
@@ -245,23 +245,23 @@ void ZoomStreamDeckPlugin::UpdateZoomStatus()
 
       if (EPLJSONUtils::GetStringByName(newStatus, "statusMute") == "muted")
       {
-        //ESDDebug("CURRENT: Zoom muted");
+        //ESDDebug("CURRENT: Webex muted");
         newMuteState = 0;
       }
       else if (EPLJSONUtils::GetStringByName(newStatus, "statusMute") == "unmuted")
       {
-        //ESDDebug("CURRENT: Zoom unmuted");
+        //ESDDebug("CURRENT: Webex unmuted");
         newMuteState = 1;
       }
 
       if (EPLJSONUtils::GetStringByName(newStatus, "statusVideo") == "stopped")
       {
-        //ESDDebug("CURRENT: Zoom video stopped");
+        //ESDDebug("CURRENT: Webex video stopped");
         newVideoState = 0;
       }
       else if (EPLJSONUtils::GetStringByName(newStatus, "statusVideo") == "started")
       {
-        //ESDDebug("CURRENT: Zoom video started");
+        //ESDDebug("CURRENT: Webex video started");
         newVideoState = 1;
       }
 
@@ -275,12 +275,12 @@ void ZoomStreamDeckPlugin::UpdateZoomStatus()
       }
       if (EPLJSONUtils::GetStringByName(newStatus, "statusRecord") == "stopped")
       {
-        //ESDDebug("CURRENT: Zoom record stopped");
+        //ESDDebug("CURRENT: Webex record stopped");
         newRecordState = 0;
       }
       else if (EPLJSONUtils::GetStringByName(newStatus, "statusRecord") == "started")
       {
-        //ESDDebug("CURRENT: Zoom record started");
+        //ESDDebug("CURRENT: Webex record started");
         newRecordState = 1;
       }
 
@@ -382,7 +382,7 @@ void ZoomStreamDeckPlugin::UpdateZoomStatus()
   }
 }
 
-void ZoomStreamDeckPlugin::KeyDownForAction(
+void WebexStreamDeckPlugin::KeyDownForAction(
     const std::string &inAction,
     const std::string &inContext,
     const json &inPayload,
@@ -391,7 +391,7 @@ void ZoomStreamDeckPlugin::KeyDownForAction(
   const auto state = EPLJSONUtils::GetIntByName(inPayload, "state");
 }
 
-void ZoomStreamDeckPlugin::KeyUpForAction(
+void WebexStreamDeckPlugin::KeyUpForAction(
     const std::string &inAction,
     const std::string &inContext,
     const json &inPayload,
@@ -409,173 +409,173 @@ void ZoomStreamDeckPlugin::KeyUpForAction(
 
   if (inAction == MUTETOGGLE_ACTION_ID)
   {
-    std::string zoomMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuMeeting");
-    std::string zoomMenuMuteAudio = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuMuteAudio");
-    std::string zoomMenuUnmuteAudio = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuUnmuteAudio");
+    std::string webexMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuMeeting");
+    std::string webexMenuMuteAudio = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuMuteAudio");
+    std::string webexMenuUnmuteAudio = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuUnmuteAudio");
 
-    if (!zoomMenuMeeting.empty())
-      m_zoomMenuMeeting = zoomMenuMeeting;
+    if (!webexMenuMeeting.empty())
+      m_webexMenuMeeting = webexMenuMeeting;
 
-    if (!zoomMenuMuteAudio.empty())
-      m_zoomMenuMuteAudio = zoomMenuMuteAudio;
+    if (!webexMenuMuteAudio.empty())
+      m_webexMenuMuteAudio = webexMenuMuteAudio;
 
-    if (!zoomMenuUnmuteAudio.empty())
-      m_zoomMenuUnmuteAudio = zoomMenuUnmuteAudio;
+    if (!webexMenuUnmuteAudio.empty())
+      m_webexMenuUnmuteAudio = webexMenuUnmuteAudio;
 
     // state == 0 == want to be muted
     if (state != 0)
     {
-      ESDDebug("Unmuting Zoom!");
+      ESDDebug("Unmuting Webex!");
     }
     // state == 1 == want to be unmuted
     else
     {
-      ESDDebug("Muting Zoom!");
+      ESDDebug("Muting Webex!");
     }
 
-    osToggleZoomMute();
+    osToggleWebexMute();
     updateStatus = true;
   }
   else if (inAction == SHARETOGGLE_ACTION_ID)
   {
-    std::string zoomMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuMeeting");
-    std::string zoomMenuStartShare = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuStartShare");
-    std::string zoomMenuStopShare = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuStopShare");
+    std::string webexMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuMeeting");
+    std::string webexMenuStartShare = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuStartShare");
+    std::string webexMenuStopShare = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuStopShare");
 
-    if (!zoomMenuMeeting.empty())
-      m_zoomMenuMeeting = zoomMenuMeeting;
+    if (!webexMenuMeeting.empty())
+      m_webexMenuMeeting = webexMenuMeeting;
 
-    if (!zoomMenuStartShare.empty())
-      m_zoomMenuStartShare = zoomMenuStartShare;
+    if (!webexMenuStartShare.empty())
+      m_webexMenuStartShare = webexMenuStartShare;
 
-    if (!zoomMenuStopShare.empty())
-      m_zoomMenuStopShare = zoomMenuStopShare;
+    if (!webexMenuStopShare.empty())
+      m_webexMenuStopShare = webexMenuStopShare;
 
     // state == 0 == want to share
     if (state != 0)
     {
-      ESDDebug("Sharing Screen on Zoom!");
+      ESDDebug("Sharing Screen on Webex!");
     }
     // state == 1 == want to stop sharing
     else
     {
-      ESDDebug("Stopping Screen Sharing on Zoom!");
+      ESDDebug("Stopping Screen Sharing on Webex!");
     }
 
-    osToggleZoomShare();
+    osToggleWebexShare();
     updateStatus = true;
   }
   else if (inAction == VIDEOTOGGLE_ACTION_ID)
   {
-    std::string zoomMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuMeeting");
-    std::string zoomMenuStartVideo = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuStartVideo");
-    std::string zoomMenuStopVideo = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuStopVideo");
+    std::string webexMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuMeeting");
+    std::string webexMenuStartVideo = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuStartVideo");
+    std::string webexMenuStopVideo = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuStopVideo");
 
-    if (!zoomMenuMeeting.empty())
-      m_zoomMenuMeeting = zoomMenuMeeting;
+    if (!webexMenuMeeting.empty())
+      m_webexMenuMeeting = webexMenuMeeting;
 
-    if (!zoomMenuStartVideo.empty())
-      m_zoomMenuStartVideo = zoomMenuStartVideo;
+    if (!webexMenuStartVideo.empty())
+      m_webexMenuStartVideo = webexMenuStartVideo;
 
-    if (!zoomMenuStopVideo.empty())
-      m_zoomMenuStopVideo = zoomMenuStopVideo;
+    if (!webexMenuStopVideo.empty())
+      m_webexMenuStopVideo = webexMenuStopVideo;
 
     // state == 0 == want to be with video on
     if (state != 0)
     {
-      ESDDebug("Starting Zoom Video!");
+      ESDDebug("Starting Webex Video!");
     }
     // state == 1 == want to be with video off
     else
     {
-      ESDDebug("Stopping Zoom Video!");
+      ESDDebug("Stopping Webex Video!");
     }
 
-    osToggleZoomVideo();
+    osToggleWebexVideo();
     updateStatus = true;
   }
-  // focus on Zoom window
+  // focus on Webex window
   else if (inAction == FOCUS_ACTION_ID)
   {
-    ESDDebug("Focusing Zoom window!");
-    osFocusZoomWindow();
+    ESDDebug("Focusing Webex window!");
+    osFocusWebexWindow();
   }
-  // leave Zoom meeting, or end the meeting. When ending, this also clicks "End
+  // leave Webex meeting, or end the meeting. When ending, this also clicks "End
   // for all"
   else if (inAction == LEAVE_ACTION_ID)
   {
-    std::string zoomMenuWindow = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuWindow");
-    std::string zoomMenuClose = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuClose");
+    std::string webexMenuWindow = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuWindow");
+    std::string webexMenuClose = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuClose");
 
-    if (!zoomMenuWindow.empty())
-      m_zoomMenuWindow = zoomMenuWindow;
+    if (!webexMenuWindow.empty())
+      m_webexMenuWindow = webexMenuWindow;
 
-    if (!zoomMenuClose.empty())
-      m_zoomMenuClose = zoomMenuClose;
+    if (!webexMenuClose.empty())
+      m_webexMenuClose = webexMenuClose;
 
-    ESDDebug("Leaving Zoom meeting!");
-    osLeaveZoomMeeting();
+    ESDDebug("Leaving Webex meeting!");
+    osLeaveWebexMeeting();
   }
 
   // toggles cloud recording
   else if (inAction == RECORDCLOUDTOGGLE_ACTION_ID)
   {
-    std::string zoomMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuMeeting");
-    std::string zoomMenuStartRecordToCloud = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuStartRecordToCloud");
-    std::string zoomMenuStopRecordToCloud = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuStopRecordToCloud");
-    std::string zoomMenuStartRecord = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuStartRecord");
+    std::string webexMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuMeeting");
+    std::string webexMenuStartRecordToCloud = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuStartRecordToCloud");
+    std::string webexMenuStopRecordToCloud = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuStopRecordToCloud");
+    std::string webexMenuStartRecord = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuStartRecord");
 
-    if (!zoomMenuMeeting.empty())
-      m_zoomMenuMeeting = zoomMenuMeeting;
+    if (!webexMenuMeeting.empty())
+      m_webexMenuMeeting = webexMenuMeeting;
 
-    if (!zoomMenuStartRecordToCloud.empty())
-      m_zoomMenuStartRecordToCloud = zoomMenuStartRecordToCloud;
+    if (!webexMenuStartRecordToCloud.empty())
+      m_webexMenuStartRecordToCloud = webexMenuStartRecordToCloud;
 
-    if (!zoomMenuStopRecordToCloud.empty())
-      m_zoomMenuStopRecordToCloud = zoomMenuStopRecordToCloud;
+    if (!webexMenuStopRecordToCloud.empty())
+      m_webexMenuStopRecordToCloud = webexMenuStopRecordToCloud;
 
-    if (!zoomMenuStartRecord.empty())
-      m_zoomMenuStartRecord = zoomMenuStartRecord;
+    if (!webexMenuStartRecord.empty())
+      m_webexMenuStartRecord = webexMenuStartRecord;
 
     ESDDebug("Toggling Recording to the Cloud");
-    osToggleZoomRecordCloud();
+    osToggleWebexRecordCloud();
   }
 
   // toggles local recording
   else if (inAction == RECORDLOCALTOGGLE_ACTION_ID)
   {
-    std::string zoomMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuMeeting");
-    std::string zoomMenuStartRecordLocal = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuStartRecordLocal");
-    std::string zoomMenuStopRecordLocal = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuStopRecordLocal");
-    std::string zoomMenuStartRecord = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuStartRecord");
+    std::string webexMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuMeeting");
+    std::string webexMenuStartRecordLocal = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuStartRecordLocal");
+    std::string webexMenuStopRecordLocal = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuStopRecordLocal");
+    std::string webexMenuStartRecord = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuStartRecord");
 
-    if (!zoomMenuMeeting.empty())
-      m_zoomMenuMeeting = zoomMenuMeeting;
+    if (!webexMenuMeeting.empty())
+      m_webexMenuMeeting = webexMenuMeeting;
 
-    if (!zoomMenuStartRecordLocal.empty())
-      m_zoomMenuStartRecordLocal = zoomMenuStartRecordLocal;
+    if (!webexMenuStartRecordLocal.empty())
+      m_webexMenuStartRecordLocal = webexMenuStartRecordLocal;
 
-    if (!zoomMenuStopRecordLocal.empty())
-      m_zoomMenuStopRecordLocal = zoomMenuStopRecordLocal;
+    if (!webexMenuStopRecordLocal.empty())
+      m_webexMenuStopRecordLocal = webexMenuStopRecordLocal;
 
-    if (!zoomMenuStartRecord.empty())
-      m_zoomMenuStartRecord = zoomMenuStartRecord;
+    if (!webexMenuStartRecord.empty())
+      m_webexMenuStartRecord = webexMenuStartRecord;
 
     ESDDebug("Toggling Recording Locally");
-    osToggleZoomRecordLocal();
+    osToggleWebexRecordLocal();
   }
 
   // muting all partitipants in a group meeting
   else if (inAction == MUTEALL_ACTION_ID)
   {
-    std::string zoomMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuMeeting");
-    std::string zoomMenuMuteAll = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuMuteAll");
+    std::string webexMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuMeeting");
+    std::string webexMenuMuteAll = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuMuteAll");
 
-    if (!zoomMenuMeeting.empty())
-      m_zoomMenuMeeting = zoomMenuMeeting;
+    if (!webexMenuMeeting.empty())
+      m_webexMenuMeeting = webexMenuMeeting;
 
-    if (!zoomMenuMuteAll.empty())
-      m_zoomMenuMuteAll = zoomMenuMuteAll;
+    if (!webexMenuMuteAll.empty())
+      m_webexMenuMuteAll = webexMenuMuteAll;
 
     ESDDebug("Muting all Participants");
     osMuteAll();
@@ -584,14 +584,14 @@ void ZoomStreamDeckPlugin::KeyUpForAction(
   // toggles local recording
   else if (inAction == UNMUTEALL_ACTION_ID)
   {
-    std::string zoomMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuMeeting");
-    std::string zoomMenuUnmuteAll = EPLJSONUtils::GetStringByName(jsonSettings, "zoomMenuUnmuteAll");
+    std::string webexMenuMeeting = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuMeeting");
+    std::string webexMenuUnmuteAll = EPLJSONUtils::GetStringByName(jsonSettings, "webexMenuUnmuteAll");
 
-    if (!zoomMenuMeeting.empty())
-      m_zoomMenuMeeting = zoomMenuMeeting;
+    if (!webexMenuMeeting.empty())
+      m_webexMenuMeeting = webexMenuMeeting;
 
-    if (!zoomMenuUnmuteAll.empty())
-      m_zoomMenuUnmuteAll = zoomMenuUnmuteAll;
+    if (!webexMenuUnmuteAll.empty())
+      m_webexMenuUnmuteAll = webexMenuUnmuteAll;
 
     ESDDebug("Asking all Participants to Unmute");
     osUnmuteAll();
@@ -599,21 +599,21 @@ void ZoomStreamDeckPlugin::KeyUpForAction(
 
   else if(inAction == CUSTOMSHORTCUT_ACTION_ID)
   {
-    std::string zoomCustomShortcut = EPLJSONUtils::GetStringByName(jsonSettings, "zoomCustomShortcut");
+    std::string webexCustomShortcut = EPLJSONUtils::GetStringByName(jsonSettings, "webexCustomShortcut");
 
     // sanity check
-    if(!zoomCustomShortcut.empty()) {
-      osZoomCustomShortcut(zoomCustomShortcut);
+    if(!webexCustomShortcut.empty()) {
+      osWebexCustomShortcut(webexCustomShortcut);
     }
   }
 
   if (updateStatus)
   {
-    UpdateZoomStatus();
+    UpdateWebexStatus();
   }
 }
 
-void ZoomStreamDeckPlugin::WillAppearForAction(
+void WebexStreamDeckPlugin::WillAppearForAction(
     const std::string &inAction,
     const std::string &inContext,
     const json &inPayload,
@@ -626,7 +626,7 @@ void ZoomStreamDeckPlugin::WillAppearForAction(
   mButtons[inAction] = {inAction, inContext};
 }
 
-void ZoomStreamDeckPlugin::WillDisappearForAction(
+void WebexStreamDeckPlugin::WillDisappearForAction(
     const std::string &inAction,
     const std::string &inContext,
     const json &inPayload,
@@ -638,7 +638,7 @@ void ZoomStreamDeckPlugin::WillDisappearForAction(
   mButtons.erase(inAction);
 }
 
-void ZoomStreamDeckPlugin::SendToPlugin(
+void WebexStreamDeckPlugin::SendToPlugin(
     const std::string &inAction,
     const std::string &inContext,
     const json &inPayload,
@@ -647,25 +647,25 @@ void ZoomStreamDeckPlugin::SendToPlugin(
   // Nothing to do
 }
 
-void ZoomStreamDeckPlugin::DeviceDidConnect(
+void WebexStreamDeckPlugin::DeviceDidConnect(
     const std::string &inDeviceID,
     const json &inDeviceInfo)
 {
   // Nothing to do
 }
 
-void ZoomStreamDeckPlugin::DeviceDidDisconnect(const std::string &inDeviceID)
+void WebexStreamDeckPlugin::DeviceDidDisconnect(const std::string &inDeviceID)
 {
   // Nothing to do
 }
 
-void ZoomStreamDeckPlugin::DidReceiveGlobalSettings(const json &inPayload)
+void WebexStreamDeckPlugin::DidReceiveGlobalSettings(const json &inPayload)
 {
   ESDDebug("DidReceiveGlobalSettings");
   ESDDebug(EPLJSONUtils::GetString(inPayload).c_str());
 }
 
-void ZoomStreamDeckPlugin::DidReceiveSettings(
+void WebexStreamDeckPlugin::DidReceiveSettings(
     const std::string &inAction,
     const std::string &inContext,
     const json &inPayload,

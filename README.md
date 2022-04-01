@@ -1,3 +1,3 @@
-# Stream Deck Zoom Plugin
+# Stream Deck Webex Plugin
 
-Info here: https://lostdomain.org/stream-deck-plugin-for-zoom/
+Info here: https://mandclu.org/stream-deck-plugin-for-webex/

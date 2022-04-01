@@ -2,7 +2,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(
   SOURCES
-  ZoomStreamDeckPlugin.cpp
+  WebexStreamDeckPlugin.cpp
   main.cpp
 )
 
@@ -23,8 +23,8 @@ endif()
 
 
 add_executable(
-  sdzoomplugin
+  sdwebexplugin
   ${SOURCES}
 )
-target_link_libraries(sdzoomplugin json StreamDeckSDK)
-install(TARGETS sdzoomplugin DESTINATION ${CMAKE_INSTALL_PREFIX})
+target_link_libraries(sdwebexplugin json StreamDeckSDK)
+install(TARGETS sdwebexplugin DESTINATION ${CMAKE_INSTALL_PREFIX})
